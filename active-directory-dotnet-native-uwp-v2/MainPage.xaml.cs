@@ -41,7 +41,9 @@ namespace active_directory_dotnet_native_uwp_v2
 
             try
             {
-                authResult = await App.PublicClientApp.AcquireTokenSilentAsync(scopes, firstAccount);
+                // this is different if you want to use integrated auth.
+                // authResult = await App.PublicClientApp.AcquireTokenSilentAsync(scopes, firstAccount);
+                authResult = await App.PublicClientApp.AcquireTokenByIntegratedWindowsAuthAsync(scopes);
             }
             catch (MsalUiRequiredException ex)
             {

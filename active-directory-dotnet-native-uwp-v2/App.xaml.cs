@@ -1,19 +1,9 @@
 ﻿using Microsoft.Identity.Client;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace active_directory_dotnet_native_uwp_v2
@@ -102,7 +92,9 @@ namespace active_directory_dotnet_native_uwp_v2
         //You have to replace the below with the Application Id for your app registration
         private static string ClientId = "0b8b0665-bc13-4fdc-bd72-e0227b9fc011";
 
-        public static PublicClientApplication PublicClientApp { get; } = new PublicClientApplication(ClientId);
+        // this needs to include the AAD-only endpoint
+        // public static PublicClientApplication PublicClientApp { get; } = new PublicClientApplication(ClientId);
+        public static PublicClientApplication PublicClientApp { get; } = new PublicClientApplication(ClientId, "https://login.microsoftonline.com/organizations/");
 
     }
 }
