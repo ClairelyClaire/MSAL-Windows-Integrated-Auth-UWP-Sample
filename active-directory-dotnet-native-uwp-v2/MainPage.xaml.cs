@@ -32,6 +32,10 @@ namespace active_directory_dotnet_native_uwp_v2
         /// </summary>
         private async void CallGraphButton_Click(object sender, RoutedEventArgs e)
         {
+            Button cmd = sender as Button;
+            cmd.IsEnabled = false;
+            cmd.Content = "Working...";
+
             AuthenticationResult authResult = null;
             ResultText.Text = string.Empty;
             TokenInfoText.Text = string.Empty;
@@ -71,6 +75,9 @@ namespace active_directory_dotnet_native_uwp_v2
                 DisplayBasicTokenInfo(authResult);
                 this.SignOutButton.Visibility = Visibility.Visible;
             }
+
+            cmd.IsEnabled = true;
+            cmd.Content = "Call Microsoft Graph API";
         }
 
         /// <summary>
