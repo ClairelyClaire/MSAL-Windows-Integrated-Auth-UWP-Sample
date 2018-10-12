@@ -60,12 +60,12 @@ namespace active_directory_dotnet_native_uwp_v2
                 }
                 catch (MsalException msalex)
                 {
-                    ResultText.Text = $"Error Acquiring Token:{System.Environment.NewLine}{msalex}";
+                    ResultText.Text = $"Error Acquiring Token:{Environment.NewLine}{msalex}";
                 }
             }
             catch (Exception ex)
             {
-                ResultText.Text = $"Error Acquiring Token Silently:{System.Environment.NewLine}{ex}";
+                ResultText.Text = $"Error Acquiring Token Silently:{Environment.NewLine}{ex}";
                 return;
             }
 
