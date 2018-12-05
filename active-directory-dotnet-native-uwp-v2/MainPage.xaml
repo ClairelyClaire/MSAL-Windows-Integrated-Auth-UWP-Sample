@@ -8,15 +8,23 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <StackPanel Background="Azure">
+        <StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="CallGraphButton" Content="Call Microsoft Graph API" HorizontalAlignment="Right" Padding="5" Click="CallGraphButton_Click" Margin="5" FontFamily="Segoe Ui"/>
-                <Button x:Name="SignOutButton" Content="Sign-Out" HorizontalAlignment="Right" Padding="5" Click="SignOutButton_Click" Margin="5" Visibility="Collapsed" FontFamily="Segoe Ui"/>
+                <Button x:Name="CallGraphButton" Content="Call Microsoft Graph API" 
+                        HorizontalAlignment="Right" Padding="5" Click="CallGraphButton_Click" 
+                        Margin="5" FontFamily="Segoe Ui"/>
+                <Button x:Name="UserButton" Content="Log In" 
+                        HorizontalAlignment="Right" Padding="5" Click="UserButton_Click" 
+                        Margin="5" FontFamily="Segoe Ui"/>
             </StackPanel>
-            <TextBlock Text="API Call Results" Margin="2,0,0,-5" FontFamily="Segoe Ui" />
-            <TextBox x:Name="ResultText" TextWrapping="Wrap" MinHeight="120" Margin="5" FontFamily="Segoe Ui"/>
+            <TextBlock Text="API Call Results" Margin="2,0,0,-5" FontFamily="Segoe Ui" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" />
+            <TextBox x:Name="ResultText" TextWrapping="Wrap" MinHeight="120" MaxHeight="600" Margin="5"                      
+                     ScrollViewer.VerticalScrollMode="Enabled" 
+                     ScrollViewer.VerticalScrollBarVisibility="Visible"
+                     FontFamily="Segoe Ui"/>
             <TextBlock Text="Token Info" Margin="2,0,0,-5" FontFamily="Segoe Ui" />
-            <TextBox x:Name="TokenInfoText" TextWrapping="Wrap" MinHeight="70" Margin="5" FontFamily="Segoe Ui"/>
+            <TextBox x:Name="TokenInfoText" TextWrapping="Wrap" MinHeight="70" MaxHeight="250" Margin="5" 
+                     FontFamily="Segoe Ui"/>
         </StackPanel>
     </Grid>
 </Page>

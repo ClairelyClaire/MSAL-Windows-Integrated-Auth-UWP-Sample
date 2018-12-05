@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using System.Diagnostics;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -21,6 +22,9 @@ namespace active_directory_dotnet_native_uwp_v2
         //Set the scope for API call to user.read
         string[] scopes = new string[] { "user.read" };
 
+        // create authentication result object
+        AuthenticationResult authResult = null;
+
 
         public MainPage()
         {
@@ -36,48 +40,112 @@ namespace active_directory_dotnet_native_uwp_v2
             cmd.IsEnabled = false;
             cmd.Content = "Working...";
 
-            AuthenticationResult authResult = null;
             ResultText.Text = string.Empty;
             TokenInfoText.Text = string.Empty;
 
+            if (authResult != null)
+            {
+                ResultText.Text = await GetHttpContentWithToken(graphAPIEndpoint, authResult.AccessToken);
+                DisplayBasicTokenInfo(authResult);
+            }
+
+            cmd.IsEnabled = true;
+            cmd.Content = "Call Microsoft Graph API";
+        }
+
+        private void UserButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button cmd = sender as Button;
+
+            if ((string)cmd.Content == "Log In")
+                LoginUser();
+            else
+                LogoutUser();
+
+            if (authResult != null)
+                cmd.Content = "Log Out";
+            else
+                cmd.Content = "Log In";
+        }
+
+        private async void LoginUser()
+        {
+            // get auth tokens from app's cache
             IEnumerable<IAccount> accounts = await App.PublicClientApp.GetAccountsAsync();
             IAccount firstAccount = accounts.FirstOrDefault();
 
+            // create empty list object to store exceptions
+            List<Exception> exceptions = new List<Exception>();
+
+            // handle authentication
             try
             {
-                // this is different if you want to use integrated auth.
-                // authResult = await App.PublicClientApp.AcquireTokenSilentAsync(scopes, firstAccount);
-                authResult = await App.PublicClientApp.AcquireTokenByIntegratedWindowsAuthAsync(scopes);
-            }
-            catch (MsalUiRequiredException ex)
-            {
-                // A MsalUiRequiredException happened on AcquireTokenSilentAsync. This indicates you need to call AcquireTokenAsync to acquire a token
-                System.Diagnostics.Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
+                // if integrated auth is enabled, try that
+                // otherwise, attempt auth with the first existing token from cache
+                if (App.IntegratedAuth)
+                    authResult = await App.PublicClientApp.AcquireTokenByIntegratedWindowsAuthAsync(scopes);
+                else
+                    authResult = await App.PublicClientApp.AcquireTokenSilentAsync(scopes, firstAccount);
 
+            }
+            // silent auth failed - catch exception
+            catch (MsalException ex)
+            {
+                // silent auth failed
+                exceptions.Add(ex);
+
+                // try interactive auth
                 try
                 {
                     authResult = await App.PublicClientApp.AcquireTokenAsync(scopes);
                 }
                 catch (MsalException msalex)
                 {
-                    ResultText.Text = $"Error Acquiring Token:{Environment.NewLine}{msalex}";
+                    exceptions.Add(msalex);
                 }
             }
-            catch (Exception ex)
-            {
-                ResultText.Text = $"Error Acquiring Token Silently:{Environment.NewLine}{ex}";
-                return;
-            }
 
-            if (authResult != null)
+            // if exceptions exist, pass the list to the handler
+            if (exceptions.Count > 0)
             {
-                ResultText.Text = await GetHttpContentWithToken(graphAPIEndpoint, authResult.AccessToken);
-                DisplayBasicTokenInfo(authResult);
-                this.SignOutButton.Visibility = Visibility.Visible;
-            }
+                ErrorHandler(exceptions);
 
-            cmd.IsEnabled = true;
-            cmd.Content = "Call Microsoft Graph API";
+                // if the sample is included, display the error(s)
+                if (App.GraphSample)
+                    DisplayResult(string.Join("\n\n",(exceptions.OfType<MsalException>())),ResultText);
+            }
+        }
+
+        private async void LogoutUser()
+        {
+            IEnumerable<IAccount> accounts = await App.PublicClientApp.GetAccountsAsync();
+            IAccount firstAccount = accounts.FirstOrDefault();
+
+            // create empty list object to store exceptions
+            List<Exception> exceptions = new List<Exception>();
+
+            try
+            {
+                await App.PublicClientApp.RemoveAsync(firstAccount);
+                this.ResultText.Text = "User has signed out";
+            }
+            catch (MsalException ex)
+            {
+                ResultText.Text = $"Error signing-out user: {ex.Message}";
+            }
+        }
+
+        private void DisplayResult(string resultText, Control target)
+        {
+            if (target is TextBox)
+                ((TextBox)target).Text = resultText;
+        }
+
+        private void ErrorHandler (List<Exception> exceptions)
+        {
+            // TODO add error-handling steps
+            // details of MSAL exception types here:
+            // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/exceptions
         }
 
         /// <summary>
@@ -103,26 +171,6 @@ namespace active_directory_dotnet_native_uwp_v2
             {
                 return ex.ToString();
             }
-        }
-
-        /// <summary>
-        /// Sign out the current user
-        /// </summary>
-        private async void SignOutButton_Click(object sender, RoutedEventArgs e)
-        {
-            IEnumerable<IAccount> accounts = await App.PublicClientApp.GetAccountsAsync();
-            IAccount firstAccount = accounts.FirstOrDefault();
-                try
-                {
-                    await App.PublicClientApp.RemoveAsync(firstAccount);
-                    this.ResultText.Text = "User has signed-out";
-                    this.CallGraphButton.Visibility = Visibility.Visible;
-                    this.SignOutButton.Visibility = Visibility.Collapsed;
-                }
-                catch (MsalException ex)
-                {
-                    ResultText.Text = $"Error signing-out user: {ex.Message}";
-                }
         }
 
         /// <summary>

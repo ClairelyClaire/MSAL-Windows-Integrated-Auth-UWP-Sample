@@ -92,9 +92,11 @@ namespace active_directory_dotnet_native_uwp_v2
         //You have to replace the below with the Application Id for your app registration
         private static string ClientId = "0b8b0665-bc13-4fdc-bd72-e0227b9fc011";
 
-        // this needs to include the AAD-only endpoint
-        // public static PublicClientApplication PublicClientApp { get; } = new PublicClientApplication(ClientId);
-        public static PublicClientApplication PublicClientApp { get; } = new PublicClientApplication(ClientId, "https://login.microsoftonline.com/organizations/");
+        // booleans for template studio
+        public static bool IntegratedAuth = true;
+        public static bool GraphSample = true;
 
+        // create instance of public client app        
+        public static PublicClientApplication PublicClientApp { get; } = new PublicClientApplication(ClientId, "https://login.microsoftonline.com/organizations/");
     }
 }
