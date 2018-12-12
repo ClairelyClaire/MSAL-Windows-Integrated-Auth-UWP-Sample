@@ -29,6 +29,7 @@ namespace active_directory_dotnet_native_uwp_v2
         public MainPage()
         {
             this.InitializeComponent();
+            CallGraphButton.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
@@ -61,11 +62,6 @@ namespace active_directory_dotnet_native_uwp_v2
                 LoginUser();
             else
                 LogoutUser();
-
-            if (authResult != null)
-                cmd.Content = "Log Out";
-            else
-                cmd.Content = "Log In";
         }
 
         private async void LoginUser()
@@ -109,10 +105,11 @@ namespace active_directory_dotnet_native_uwp_v2
             if (exceptions.Count > 0)
             {
                 ErrorHandler(exceptions);
-
-                // if the sample is included, display the error(s)
-                if (App.GraphSample)
-                    DisplayResult(string.Join("\n\n",(exceptions.OfType<MsalException>())),ResultText);
+            }
+            else if (authResult != null)
+            {
+                CallGraphButton.Visibility = Visibility.Visible;
+                UserButton.Content = "Log Out";
             }
         }
 
@@ -127,11 +124,19 @@ namespace active_directory_dotnet_native_uwp_v2
             try
             {
                 await App.PublicClientApp.RemoveAsync(firstAccount);
-                this.ResultText.Text = "User has signed out";
+                // logged out successfully - nullify authResult
+                // hide Graph button
+                // rewrite log out button to log in
+
+                UserButton.Content = "Log In";
+                CallGraphButton.Visibility = Visibility.Collapsed;
+                authResult = null;
             }
             catch (MsalException ex)
             {
-                ResultText.Text = $"Error signing-out user: {ex.Message}";
+                exceptions.Add(ex);
+
+                ErrorHandler(exceptions);
             }
         }
 
@@ -146,6 +151,10 @@ namespace active_directory_dotnet_native_uwp_v2
             // TODO add error-handling steps
             // details of MSAL exception types here:
             // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/exceptions
+
+            // if the sample is included, display the error(s)
+            if (App.GraphSample)
+                DisplayResult(string.Join("\n\n",(exceptions.OfType<MsalException>())),ResultText);
         }
 
         /// <summary>
