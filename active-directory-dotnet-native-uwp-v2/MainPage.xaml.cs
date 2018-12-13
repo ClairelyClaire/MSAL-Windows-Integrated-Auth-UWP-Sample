@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
-namespace active_directory_dotnet_native_uwp_v2
+namespace MSALSample
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
@@ -29,13 +31,13 @@ namespace active_directory_dotnet_native_uwp_v2
         public MainPage()
         {
             this.InitializeComponent();
-            CallGraphButton.Visibility = Visibility.Collapsed;
+            GraphButton.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
         /// Call AcquireTokenAsync - to acquire a token requiring user to sign-in
         /// </summary>
-        private async void CallGraphButton_Click(object sender, RoutedEventArgs e)
+        private async void GraphButton_Click(object sender, RoutedEventArgs e)
         {
             Button cmd = sender as Button;
             cmd.IsEnabled = false;
@@ -108,8 +110,8 @@ namespace active_directory_dotnet_native_uwp_v2
             }
             else if (authResult != null)
             {
-                CallGraphButton.Visibility = Visibility.Visible;
-                UserButton.Content = "Log Out";
+                // TODO: implement post-login logic
+                PostLogin();                
             }
         }
 
@@ -124,13 +126,12 @@ namespace active_directory_dotnet_native_uwp_v2
             try
             {
                 await App.PublicClientApp.RemoveAsync(firstAccount);
-                // logged out successfully - nullify authResult
-                // hide Graph button
-                // rewrite log out button to log in
 
-                UserButton.Content = "Log In";
-                CallGraphButton.Visibility = Visibility.Collapsed;
+                //nullify authResult - needed to ensure log out is complete
                 authResult = null;
+
+                // TODO: implement post-logout logic
+                PostLogout();
             }
             catch (MsalException ex)
             {
@@ -144,6 +145,22 @@ namespace active_directory_dotnet_native_uwp_v2
         {
             if (target is TextBox)
                 ((TextBox)target).Text = resultText;
+        }
+
+        private void PostLogin()
+        {
+            if (App.GraphSample)
+                GraphButton.Visibility = Visibility.Visible;
+
+            UserButton.Content = "Log Out";
+        }
+
+        private void PostLogout()
+        {
+            if (App.GraphSample)
+                GraphButton.Visibility = Visibility.Collapsed;
+            
+            UserButton.Content = "Log In";            
         }
 
         private void ErrorHandler (List<Exception> exceptions)
@@ -165,19 +182,25 @@ namespace active_directory_dotnet_native_uwp_v2
         /// <returns>String containing the results of the GET operation</returns>
         public async Task<string> GetHttpContentWithToken(string url, string token)
         {
-            var httpClient = new System.Net.Http.HttpClient();
-            System.Net.Http.HttpResponseMessage response;
+            // Create a new HTTP client for sending/receiving HTTP requests
+            HttpClient httpClient = new HttpClient();
+            // Create a new HTTP response object
+            HttpResponseMessage response;
             try
             {
-                var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, url);
-                //Add the token in Authorization header
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                // Create a new HTTP request object
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+                // Add the token in Authorization header
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                // Retreive the response via HTTP
                 response = await httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                // Read the response body and return as a string
+                string content = await response.Content.ReadAsStringAsync();
                 return content;
             }
             catch (Exception ex)
             {
+                // Return HTTP errors as a string
                 return ex.ToString();
             }
         }

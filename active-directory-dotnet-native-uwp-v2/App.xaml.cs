@@ -6,7 +6,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
-namespace active_directory_dotnet_native_uwp_v2
+namespace MSALSample
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
@@ -93,7 +93,7 @@ namespace active_directory_dotnet_native_uwp_v2
         private static string ClientId = "0b8b0665-bc13-4fdc-bd72-e0227b9fc011";
 
         // booleans for template studio
-        public static bool IntegratedAuth = true;
+        public static bool IntegratedAuth = false;
         public static bool GraphSample = true;
 
         // create instance of public client app        
