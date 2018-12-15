@@ -24,14 +24,9 @@ namespace MSALSample
         //Set the scope for API call to user.read
         string[] scopes = new string[] { "user.read" };
 
-        // create authentication result object
-        AuthenticationResult authResult = null;
-
-
         public MainPage()
         {
             this.InitializeComponent();
-            GraphButton.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
@@ -46,21 +41,21 @@ namespace MSALSample
             ResultText.Text = string.Empty;
             TokenInfoText.Text = string.Empty;
 
-            if (authResult != null)
+            if (Globals.AuthResult != null)
             {
-                ResultText.Text = await GetHttpContentWithToken(graphAPIEndpoint, authResult.AccessToken);
-                DisplayBasicTokenInfo(authResult);
+                ResultText.Text = await GetHttpContentWithToken(graphAPIEndpoint, Globals.AuthResult.AccessToken);
+                DisplayBasicTokenInfo(Globals.AuthResult);
             }
 
             cmd.IsEnabled = true;
-            cmd.Content = "Call Microsoft Graph API";
+            cmd.Content = "Call Graph API";
         }
 
         private void UserButton_Click(object sender, RoutedEventArgs e)
         {
             Button cmd = sender as Button;
 
-            if ((string)cmd.Content == "Log In")
+            if (Globals.AuthResult == null)
                 LoginUser();
             else
                 LogoutUser();
@@ -81,9 +76,9 @@ namespace MSALSample
                 // if integrated auth is enabled, try that
                 // otherwise, attempt auth with the first existing token from cache
                 if (App.IntegratedAuth)
-                    authResult = await App.PublicClientApp.AcquireTokenByIntegratedWindowsAuthAsync(scopes);
+                    Globals.AuthResult = await App.PublicClientApp.AcquireTokenByIntegratedWindowsAuthAsync(scopes);
                 else
-                    authResult = await App.PublicClientApp.AcquireTokenSilentAsync(scopes, firstAccount);
+                    Globals.AuthResult = await App.PublicClientApp.AcquireTokenSilentAsync(scopes, firstAccount);
 
             }
             // silent auth failed - catch exception
@@ -95,7 +90,7 @@ namespace MSALSample
                 // try interactive auth
                 try
                 {
-                    authResult = await App.PublicClientApp.AcquireTokenAsync(scopes);
+                    Globals.AuthResult = await App.PublicClientApp.AcquireTokenAsync(scopes);
                 }
                 catch (MsalException msalex)
                 {
@@ -108,7 +103,7 @@ namespace MSALSample
             {
                 ErrorHandler(exceptions);
             }
-            else if (authResult != null)
+            else if (Globals.AuthResult != null)
             {
                 // TODO: implement post-login logic
                 PostLogin();                
@@ -128,7 +123,7 @@ namespace MSALSample
                 await App.PublicClientApp.RemoveAsync(firstAccount);
 
                 //nullify authResult - needed to ensure log out is complete
-                authResult = null;
+                Globals.AuthResult = null;
 
                 // TODO: implement post-logout logic
                 PostLogout();
@@ -147,7 +142,7 @@ namespace MSALSample
                 ((TextBox)target).Text = resultText;
         }
 
-        private void PostLogin()
+        public void PostLogin()
         {
             if (App.GraphSample)
                 GraphButton.Visibility = Visibility.Visible;
@@ -155,7 +150,7 @@ namespace MSALSample
             UserButton.Content = "Log Out";
         }
 
-        private void PostLogout()
+        public void PostLogout()
         {
             if (App.GraphSample)
                 GraphButton.Visibility = Visibility.Collapsed;
@@ -163,7 +158,7 @@ namespace MSALSample
             UserButton.Content = "Log In";            
         }
 
-        private void ErrorHandler (List<Exception> exceptions)
+        public void ErrorHandler (List<Exception> exceptions)
         {
             // TODO add error-handling steps
             // details of MSAL exception types here:
@@ -211,11 +206,11 @@ namespace MSALSample
         private void DisplayBasicTokenInfo(AuthenticationResult authResult)
         {
             TokenInfoText.Text = "";
-            if (authResult != null)
+            if (Globals.AuthResult != null)
             {
-                TokenInfoText.Text += $"User Name: {authResult.Account.Username}" + Environment.NewLine;
-                TokenInfoText.Text += $"Token Expires: {authResult.ExpiresOn.ToLocalTime()}" + Environment.NewLine;
-                TokenInfoText.Text += $"Access Token: {authResult.AccessToken}" + Environment.NewLine;
+                TokenInfoText.Text += $"User Name: {Globals.AuthResult.Account.Username}" + Environment.NewLine;
+                TokenInfoText.Text += $"Token Expires: {Globals.AuthResult.ExpiresOn.ToLocalTime()}" + Environment.NewLine;
+                TokenInfoText.Text += $"Access Token: {Globals.AuthResult.AccessToken}" + Environment.NewLine;
             }
         }
     }
